@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Điểm Tin Sáng — Bảng điều khiển</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:     #0B1F3A;
+    --navy-mid: #112B50;
+    --amber:    #F5A623;
+    --green:    #00C48C;
+    --red:      #FF4D6A;
+    --bg:       #F0F4FA;
+    --surface:  #FFFFFF;
+    --card:     #FFFFFF;
+    --border:   #E2E8F0;
+    --text:     #0B1F3A;
+    --muted:    #64748B;
+    --light:    #94A3B8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #0D1117;
+      --surface: #161B22;
+      --card:    #1E2A3A;
+      --border:  #2D3748;
+      --text:    #E8EEF5;
+      --muted:   #8FA4BD;
+      --light:   #4A6080;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--navy);
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-pill {
+    background: var(--amber); color: var(--navy);
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    padding: 3px 10px; border-radius: 5px;
+  }
+  .brand-name { color: #fff; font-size: 16px; font-weight: 600; letter-spacing: .01em; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .date-chip {
+    color: #8FA4BD; font-size: 12px;
+    border: 1px solid #1E3A5F; border-radius: 5px; padding: 3px 10px;
+  }
+  .refresh-btn {
+    background: none; border: 1px solid #1E3A5F; border-radius: 5px;
+    color: var(--amber); font-size: 12px; font-weight: 600;
+    padding: 4px 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: background .15s;
+  }
+  .refresh-btn:hover { background: #1E3A5F; }
+  .refresh-btn svg { width: 13px; height: 13px; }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 8px 24px; display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--muted);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #00C48C; flex-shrink: 0; }
+  .dot.spin { background: var(--amber); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
+
+  /* ── GRID ── */
+  .grid-3 {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 14px;
+  }
+  .grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-bottom: 14px;
+  }
+  @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .card-title {
+    font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .card-title svg { width: 14px; height: 14px; opacity: .7; }
+
+  /* ── INDEX ROWS (VN market) ── */
+  .idx-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  .idx-row:last-child { border-bottom: none; }
+  .idx-name { font-size: 12px; font-weight: 600; }
+  .idx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .idx-price { font-size: 16px; font-weight: 700; }
+  .idx-chg { font-size: 11px; font-weight: 600; }
+  .up { color: var(--green); }
+  .dn { color: var(--red); }
+  .na { color: var(--light); }
+
+  /* ── WORLD MARKET ── */
+  .world-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .w-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+  }
+  .w-row:nth-child(n+5) { border-bottom: none; }
+  .w-name { font-size: 11px; color: var(--muted); }
+  .w-chg { font-size: 12px; font-weight: 700; }
+
+  /* ── MACRO ── */
+  .macro-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  .macro-row:last-child { border-bottom: none; }
+  .macro-label { font-size: 11px; color: var(--muted); }
+  .macro-val { font-size: 14px; font-weight: 700; }
+
+  /* ── NEWS ── */
+  .news-item {
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-hl { font-size: 13px; line-height: 1.45; margin-bottom: 3px; }
+  .news-meta { font-size: 10px; color: var(--light); }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px;
+    border-radius: 4px; margin-right: 5px; vertical-align: middle;
+  }
+  .tag-bank { background: #EFF6FF; color: #1D4ED8; }
+  .tag-bds  { background: #FFF7ED; color: #C2410C; }
+  .tag-vimo { background: #F0FDF4; color: #15803D; }
+  .tag-ck   { background: #FAF5FF; color: #7E22CE; }
+  @media (prefers-color-scheme: dark) {
+    .tag-bank { background: #1E3A5F; color: #93C5FD; }
+    .tag-bds  { background: #3D1F0A; color: #FCA475; }
+    .tag-vimo { background: #0A2F1A; color: #6EE7A0; }
+    .tag-ck   { background: #2D1B4E; color: #C4B5FD; }
+  }
+
+  /* ── PICKS ── */
+  .pick-main {
+    background: var(--navy); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .pick-ticker { font-size: 28px; font-weight: 700; color: #fff; }
+  .pick-company { font-size: 11px; color: #8FA4BD; margin-top: 1px; }
+  .pick-chg { font-size: 14px; font-weight: 700; margin-top: 8px; }
+  .pick-reason { font-size: 11px; color: #8FA4BD; margin-top: 5px; line-height: 1.5; }
+  .pick-edit {
+    font-size: 10px; color: var(--amber); cursor: pointer;
+    margin-top: 6px; display: inline-block; opacity: .8;
+  }
+  .pick-edit:hover { opacity: 1; }
+
+  .mini-pick {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid var(--border);
+  }
+  .mini-pick:last-child { border-bottom: none; }
+  .mini-ticker { font-size: 15px; font-weight: 700; }
+  .mini-co { font-size: 10px; color: var(--light); }
+  .mini-chg { font-size: 13px; font-weight: 700; }
+
+  /* ── SCRIPT ── */
+  .script-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 13px; line-height: 1.75; color: var(--muted);
+    white-space: pre-wrap; min-height: 130px;
+    margin-bottom: 16px; font-family: inherit;
+  }
+
+  /* ── ACTIONS ── */
+  .actions { display: flex; gap: 10px; }
+  .btn {
+    flex: 1; padding: 12px; font-size: 14px; font-weight: 700;
+    border-radius: 10px; cursor: pointer; border: none;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: opacity .15s, transform .1s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--navy); color: var(--amber); }
+  .btn-primary:hover { opacity: .88; }
+  .btn-secondary {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn svg { width: 16px; height: 16px; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+
+  /* ── EDIT OVERLAY ── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.55); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .edit-modal {
+    background: var(--card); border-radius: 14px;
+    padding: 24px; width: 100%; max-width: 460px;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: block; }
+  .form-input {
+    width: 100%; padding: 8px 12px; font-size: 13px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: inherit;
+  }
+  .form-input:focus { outline: 2px solid var(--amber); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: var(--amber);
+    font-size: 13px; font-weight: 600;
+    padding: 9px 20px; border-radius: 20px;
+    display: none; z-index: 999; white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  }
+  .toast.show { display: block; }
+
+  /* ── PPTX PROGRESS ── */
+  .progress-bar {
+    height: 3px; background: var(--border); border-radius: 2px;
+    margin-top: 10px; display: none; overflow: hidden;
+  }
+  .progress-bar.show { display: block; }
+  .progress-fill {
+    height: 100%; background: var(--amber);
+    border-radius: 2px; width: 0%;
+    transition: width .4s ease;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-pill">ĐIỂM TIN SÁNG</span>
+    <span class="brand-name">Bảng điều khiển buổi sáng</span>
+  </div>
+  <div class="topbar-right">
+    <span class="date-chip" id="dateBadge">--</span>
+    <button class="refresh-btn" onclick="refreshAll()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Làm mới
+    </button>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="status-bar">
+  <div class="dot spin" id="statusDot"></div>
+  <span id="statusText">Đang tải dữ liệu...</span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ROW 1: 3 cols -->
+  <div class="grid-3">
+    <!-- VN Market -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Thị trường Việt Nam
+      </div>
+      <div class="idx-row">
+        <span class="idx-name">VNINDEX</span>
+        <div class="idx-right">
+          <span class="idx-price" id="vni-price">—</span>
+          <span class="idx-chg na" id="vni-chg">—</span>
+        </div>
+      </div>
+      <div class="idx-row">
+        <span class="idx-name">VN30</span>
+        <div class="idx-right">
+          <span class="idx-price" id="vn30-price">—</span>
+          <span class="idx-chg na" id="vn30-chg">—</span>
+        </div>
+      </div>
+      <div class="idx-row">
+        <span class="idx-name">HNX</span>
+        <div class="idx-right">
+          <span class="idx-price" id="hnx-price">—</span>
+          <span class="idx-chg na" id="hnx-chg">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- World -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Thị trường quốc tế
+      </div>
+      <div class="world-grid">
+        <div class="w-row"><span class="w-name">🇺🇸 S&P 500</span><span class="w-chg na" id="sp-chg">—</span></div>
+        <div class="w-row"><span class="w-name">🇺🇸 Nasdaq</span><span class="w-chg na" id="nq-chg">—</span></div>
+        <div class="w-row"><span class="w-name">🇯🇵 Nikkei</span><span class="w-chg na" id="nk-chg">—</span></div>
+        <div class="w-row"><span class="w-name">🇨🇳 Shanghai</span><span class="w-chg na" id="sh-chg">—</span></div>
+        <div class="w-row"><span class="w-name">🛢 Dầu Brent</span><span class="w-chg na" id="oil-val">—</span></div>
+        <div class="w-row"><span class="w-name">🥇 Vàng</span><span class="w-chg na" id="gold-val">—</span></div>
+      </div>
+    </div>
+
+    <!-- Macro -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Vĩ mô &amp; Tỷ giá
+      </div>
+      <div class="macro-row">
+        <span class="macro-label">USD/VND</span>
+        <span class="macro-val" id="usd-val">—</span>
+      </div>
+      <div class="macro-row">
+        <span class="macro-label">Lãi suất OMO</span>
+        <span class="macro-val">4,50%</span>
+      </div>
+      <div class="macro-row">
+        <span class="macro-label">Fed Funds Rate</span>
+        <span class="macro-val">4,25–4,50%</span>
+      </div>
+      <div class="macro-row">
+        <span class="macro-label">CPI YoY (mới nhất)</span>
+        <span class="macro-val" id="cpi-val">~3.9%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: 2 cols -->
+  <div class="grid-2">
+    <!-- News -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/><path d="M16 2v20"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="12" x2="12" y2="12"/></svg>
+        Tin nổi bật — tự điền
+        <span style="margin-left:auto;font-size:10px;color:var(--amber);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0" onclick="openNewsEdit()">✏ Sửa</span>
+      </div>
+      <div id="newsList">
+        <div class="news-item">
+          <div class="news-hl"><span class="tag tag-bank">Ngân hàng</span>NHNN xem xét điều chỉnh lãi suất điều hành trong Q3/2026</div>
+          <div class="news-meta">CafeF · Hôm nay</div>
+        </div>
+        <div class="news-item">
+          <div class="news-hl"><span class="tag tag-bds">BĐS</span>Thị trường căn hộ TP.HCM — giao dịch cải thiện tháng 6</div>
+          <div class="news-meta">VnEconomy · Hôm nay</div>
+        </div>
+        <div class="news-item">
+          <div class="news-hl"><span class="tag tag-vimo">Vĩ mô</span>Xuất khẩu 6T/2026 tăng 14.2% — điện tử và dệt may dẫn đầu</div>
+          <div class="news-meta">Vietstock · Hôm nay</div>
+        </div>
+        <div class="news-item">
+          <div class="news-hl"><span class="tag tag-ck">Chứng khoán</span>Khối ngoại mua ròng phiên 3 liên tiếp — VCB, FPT hút vốn</div>
+          <div class="news-meta">CafeF · Hôm nay</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Picks -->
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Cổ phiếu tiêu điểm
+        <span style="margin-left:auto;font-size:10px;color:var(--amber);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0" onclick="openPickEdit()">✏ Sửa pick</span>
+      </div>
+      <div class="pick-main">
+        <div class="pick-ticker" id="p1-ticker">VCB</div>
+        <div class="pick-company" id="p1-company">Vietcombank — PICK SỐ 1</div>
+        <div class="pick-chg up" id="p1-chg">▲ +1.8% · 86,200đ</div>
+        <div class="pick-reason" id="p1-reason">Khối ngoại mua ròng, NIM cải thiện, dự kiến cổ tức tiền mặt</div>
+      </div>
+      <div class="mini-pick">
+        <div>
+          <div class="mini-ticker" id="p2-ticker">HPG</div>
+          <div class="mini-co">Hoa Phát Group</div>
+        </div>
+        <span class="mini-chg up" id="p2-chg">▲ +1.2%</span>
+      </div>
+      <div class="mini-pick">
+        <div>
+          <div class="mini-ticker" id="p3-ticker">FPT</div>
+          <div class="mini-co">FPT Corporation</div>
+        </div>
+        <span class="mini-chg up" id="p3-chg">▲ +0.6%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <div class="section-label">Script gợi ý — hook &amp; outline buổi sáng</div>
+  <div class="script-box" id="scriptBox">Đang tạo script...</div>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-primary" onclick="downloadPPTX()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Tải PowerPoint hôm nay
+    </button>
+    <button class="btn btn-secondary" onclick="copyScript()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy script
+    </button>
+  </div>
+
+</div>
+
+<!-- EDIT PICKS MODAL -->
+<div class="overlay" id="pickModal">
+  <div class="edit-modal">
+    <div class="modal-title">Chỉnh cổ phiếu tiêu điểm</div>
+    <div class="form-row">
+      <label class="form-label">Pick #1 — Mã CK</label>
+      <input class="form-input" id="e-p1t" value="VCB">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Pick #1 — Lý do ngắn</label>
+      <input class="form-input" id="e-p1r" value="Khối ngoại mua ròng, NIM cải thiện, dự kiến cổ tức tiền mặt">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Pick #2 — Mã CK</label>
+      <input class="form-input" id="e-p2t" value="HPG">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Pick #3 — Mã CK</label>
+      <input class="form-input" id="e-p3t" value="FPT">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="padding:10px" onclick="savePicks()">Lưu &amp; cập nhật giá</button>
+      <button class="btn btn-secondary" style="padding:10px;flex:0;padding:10px 18px" onclick="closeModal('pickModal')">Huỷ</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT NEWS MODAL -->
+<div class="overlay" id="newsModal">
+  <div class="edit-modal">
+    <div class="modal-title">Chỉnh tin tức hôm nay</div>
+    <div class="form-row">
+      <label class="form-label">Tin #1</label>
+      <input class="form-input" id="n1" value="NHNN xem xét điều chỉnh lãi suất điều hành trong Q3/2026">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Nguồn #1</label>
+      <input class="form-input" id="n1s" value="CafeF">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Tin #2</label>
+      <input class="form-input" id="n2" value="Thị trường căn hộ TP.HCM — giao dịch cải thiện tháng 6">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Nguồn #2</label>
+      <input class="form-input" id="n2s" value="VnEconomy">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Tin #3</label>
+      <input class="form-input" id="n3" value="Xuất khẩu 6T/2026 tăng 14.2% — điện tử và dệt may dẫn đầu">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Tin #4</label>
+      <input class="form-input" id="n4" value="Khối ngoại mua ròng phiên 3 liên tiếp — VCB, FPT hút vốn">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="padding:10px" onclick="saveNews()">Lưu</button>
+      <button class="btn btn-secondary" style="padding:10px;flex:0;padding:10px 18px" onclick="closeModal('newsModal')">Huỷ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- pptxgenjs CDN -->
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+const state = {
+  vni: null, vn30: null, hnx: null,
+  sp: null, nq: null, nk: null, sh: null, oil: null, gold: null, usd: null,
+  picks: [
+    { ticker:'VCB', company:'Vietcombank', price: null, chgPct: null, reason:'Khối ngoại mua ròng, NIM cải thiện, dự kiến cổ tức tiền mặt' },
+    { ticker:'HPG', company:'Hoa Phát Group', price: null, chgPct: null, reason:'' },
+    { ticker:'FPT', company:'FPT Corporation', price: null, chgPct: null, reason:'' },
+  ],
+  news: [
+    { hl:'NHNN xem xét điều chỉnh lãi suất điều hành trong Q3/2026', src:'CafeF', tag:'bank' },
+    { hl:'Thị trường căn hộ TP.HCM — giao dịch cải thiện tháng 6', src:'VnEconomy', tag:'bds' },
+    { hl:'Xuất khẩu 6T/2026 tăng 14.2% — điện tử và dệt may dẫn đầu', src:'Vietstock', tag:'vimo' },
+    { hl:'Khối ngoại mua ròng phiên 3 liên tiếp — VCB, FPT hút vốn', src:'CafeF', tag:'ck' },
+  ]
+};
+
+// ── DATE ──────────────────────────────────────────────────────────
+const today = new Date();
+const wd = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'][today.getDay()];
+document.getElementById('dateBadge').textContent =
+  wd + ' · ' + today.toLocaleDateString('vi-VN');
+
+// ── UTILS ──────────────────────────────────────────────────────────
+function toast(msg, dur=2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function setStatus(msg, done=false) {
+  document.getElementById('statusText').textContent = msg;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'dot' + (done ? '' : ' spin');
+}
+
+function chgClass(pct) {
+  if (pct === null || pct === undefined) return 'na';
+  return pct >= 0 ? 'up' : 'dn';
+}
+
+function fmtPct(pct) {
+  if (pct === null || pct === undefined) return '—';
+  const sign = pct >= 0 ? '+' : '';
+  return sign + pct.toFixed(2) + '%';
+}
+
+function setEl(id, text, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  if (cls) el.className = el.className.replace(/\b(up|dn|na)\b/g,'') + ' ' + cls;
+}
+
+// ── DATA FETCHING ──────────────────────────────────────────────────
+async function fetchYahoo(symbol) {
+  try {
+    const r = await fetch(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`,
+      { headers: { Accept: 'application/json' } }
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const meta = j?.chart?.result?.[0]?.meta;
+    if (!meta) return null;
+    const price = meta.regularMarketPrice;
+    const prev  = meta.chartPreviousClose || meta.previousClose;
+    const chgPct = prev ? (price - prev) / prev * 100 : 0;
+    return { price, chgPct };
+  } catch { return null; }
+}
+
+async function fetchTCBS(ticker) {
+  try {
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - 86400 * 5;
+    const r = await fetch(
+      `https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term?ticker=${ticker}&type=stock&resolution=D&from=${from}&to=${to}`
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const bars = j?.data;
+    if (!bars?.length) return null;
+    const last = bars[bars.length - 1];
+    const prev = bars.length > 1 ? bars[bars.length - 2] : null;
+    const price  = last.close * 1000;
+    const chgPct = prev ? (last.close - prev.close) / prev.close * 100 : 0;
+    return { price, chgPct };
+  } catch { return null; }
+}
+
+// ── REFRESH ────────────────────────────────────────────────────────
+async function refreshAll() {
+  setStatus('Đang tải dữ liệu quốc tế...', false);
+
+  const [spD, nqD, nkD, shD, oilD, goldD, usdD, vniD, vn30D, hnxD] = await Promise.all([
+    fetchYahoo('^GSPC'), fetchYahoo('^IXIC'), fetchYahoo('^N225'),
+    fetchYahoo('000001.SS'), fetchYahoo('BZ=F'), fetchYahoo('GC=F'),
+    fetchYahoo('VND=X'), fetchYahoo('^VNINDEX'), fetchYahoo('^VN30'), fetchYahoo('^HNX')
+  ]);
+
+  // World
+  const worldMap = { sp:spD, nq:nqD, nk:nkD, sh:shD };
+  for (const [k, d] of Object.entries(worldMap)) {
+    const v = fmtPct(d?.chgPct ?? null);
+    setEl(k+'-chg', v, chgClass(d?.chgPct));
+  }
+  if (oilD)  setEl('oil-val',  '$' + oilD.price.toFixed(1) + ' (' + fmtPct(oilD.chgPct) + ')', chgClass(oilD.chgPct));
+  if (goldD) setEl('gold-val', '$' + Math.round(goldD.price).toLocaleString() + ' (' + fmtPct(goldD.chgPct) + ')', chgClass(goldD.chgPct));
+  if (usdD)  setEl('usd-val',  Math.round(usdD.price).toLocaleString('vi-VN') + ' đ', '');
+
+  // VN indices
+  if (vniD) {
+    setEl('vni-price', vniD.price.toFixed(2));
+    setEl('vni-chg', fmtPct(vniD.chgPct), chgClass(vniD.chgPct));
+    state.vni = vniD;
+  }
+  if (vn30D) {
+    setEl('vn30-price', vn30D.price.toFixed(2));
+    setEl('vn30-chg', fmtPct(vn30D.chgPct), chgClass(vn30D.chgPct));
+    state.vn30 = vn30D;
+  }
+  if (hnxD) {
+    setEl('hnx-price', hnxD.price.toFixed(2));
+    setEl('hnx-chg', fmtPct(hnxD.chgPct), chgClass(hnxD.chgPct));
+    state.hnx = hnxD;
+  }
+
+  state.sp = spD; state.oil = oilD; state.gold = goldD; state.usd = usdD;
+
+  // Picks
+  setStatus('Đang tải giá cổ phiếu VN...', false);
+  await refreshPicks();
+
+  generateScript();
+  setStatus('Đã cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN'), true);
+}
+
+async function refreshPicks() {
+  const results = await Promise.all(state.picks.map(p => fetchTCBS(p.ticker)));
+  results.forEach((d, i) => {
+    if (!d) return;
+    state.picks[i].price   = d.price;
+    state.picks[i].chgPct  = d.chgPct;
+  });
+  renderPicks();
+}
+
+function renderPicks() {
+  const p = state.picks;
+  setEl('p1-ticker', p[0].ticker);
+  setEl('p1-company', (p[0].company || p[0].ticker) + ' — PICK SỐ 1');
+  document.getElementById('p1-reason').textContent = p[0].reason;
+  if (p[0].price !== null) {
+    const txt = (p[0].chgPct >= 0 ? '▲ ' : '▼ ') + fmtPct(p[0].chgPct) + ' · ' + Math.round(p[0].price).toLocaleString('vi-VN') + 'đ';
+    setEl('p1-chg', txt, chgClass(p[0].chgPct));
+  }
+
+  setEl('p2-ticker', p[1].ticker);
+  if (p[1].price !== null) setEl('p2-chg', (p[1].chgPct >= 0 ? '▲ ' : '▼ ') + fmtPct(p[1].chgPct), chgClass(p[1].chgPct));
+
+  setEl('p3-ticker', p[2].ticker);
+  if (p[2].price !== null) setEl('p3-chg', (p[2].chgPct >= 0 ? '▲ ' : '▼ ') + fmtPct(p[2].chgPct), chgClass(p[2].chgPct));
+}
+
+// ── SCRIPT GENERATION ──────────────────────────────────────────────
+function generateScript() {
+  const sp = state.sp;
+  const vni = state.vni;
+  const oil = state.oil;
+  const p = state.picks;
+
+  const spLine = sp
+    ? `S&P 500 đêm qua ${sp.chgPct >= 0 ? 'tăng' : 'giảm'} ${Math.abs(sp.chgPct).toFixed(1)}%`
+    : 'Thị trường Mỹ biến động';
+  const vniLine = vni
+    ? `VNINDEX hiện tại ${vni.chgPct >= 0 ? 'tích cực' : 'chịu áp lực nhẹ'} (${fmtPct(vni.chgPct)})`
+    : 'VNINDEX đang theo dõi';
+  const oilLine = oil
+    ? `Dầu Brent ${oil.chgPct >= 0 ? 'phục hồi' : 'điều chỉnh'} ở $${oil.price.toFixed(1)}/thùng — ảnh hưởng nhóm GAS, PVD.`
+    : '';
+
+  const script = `🎬 HOOK MỞ ĐẦU (15–20 giây):
+"${spLine} — ${vniLine}. Tôi là [Tên], đây là Điểm Tin Sáng — thông tin bạn cần trước khi thị trường mở cửa!"
+
+──────────────────────────────────────
+📊 PHẦN 1 — TỔNG QUAN (90 giây):
+• VNINDEX: ${vni ? vni.price.toFixed(2) + ' (' + fmtPct(vni.chgPct) + ')' : '—'}  |  VN30: ${state.vn30 ? state.vn30.price.toFixed(2) : '—'}
+• Nhấn mạnh nhóm ngành dẫn dắt/kéo giảm phiên hôm nay
+
+🌐 PHẦN 2 — QUỐC TẾ & VĨ MÔ (60 giây):
+${oilLine || '• Điểm qua S&P, Nikkei và tỷ giá USD/VND'}
+• USD/VND: ${state.usd ? Math.round(state.usd.price).toLocaleString('vi-VN') : '—'} đ
+
+🎯 PHẦN 3 — CỔ PHIẾU TIÊU ĐIỂM (3 phút):
+• PICK #1: ${p[0].ticker}${p[0].price ? ' — ' + Math.round(p[0].price).toLocaleString('vi-VN') + 'đ (' + fmtPct(p[0].chgPct) + ')' : ''}
+  Lý do: ${p[0].reason}
+• PICK #2: ${p[1].ticker}${p[1].price ? ' (' + fmtPct(p[1].chgPct) + ')' : ''}
+• PICK #3: ${p[2].ticker}${p[2].price ? ' (' + fmtPct(p[2].chgPct) + ')' : ''}
+
+📅 KẾT THÚC (20 giây):
+"Subscribe để nhận điểm tin 7h sáng mỗi ngày giao dịch — hẹn gặp lại ngày mai!"`;
+
+  document.getElementById('scriptBox').textContent = script;
+}
+
+// ── COPY SCRIPT ────────────────────────────────────────────────────
+function copyScript() {
+  const text = document.getElementById('scriptBox').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('✅ Đã copy script!')).catch(() => toast('⚠ Không copy được, hãy chọn thủ công'));
+}
+
+// ── MODALS ─────────────────────────────────────────────────────────
+function openPickEdit() {
+  document.getElementById('e-p1t').value = state.picks[0].ticker;
+  document.getElementById('e-p1r').value = state.picks[0].reason;
+  document.getElementById('e-p2t').value = state.picks[1].ticker;
+  document.getElementById('e-p3t').value = state.picks[2].ticker;
+  document.getElementById('pickModal').classList.add('open');
+}
+
+async function savePicks() {
+  state.picks[0].ticker = document.getElementById('e-p1t').value.toUpperCase().trim();
+  state.picks[0].reason = document.getElementById('e-p1r').value.trim();
+  state.picks[1].ticker = document.getElementById('e-p2t').value.toUpperCase().trim();
+  state.picks[2].ticker = document.getElementById('e-p3t').value.toUpperCase().trim();
+  closeModal('pickModal');
+  toast('⏳ Đang tải giá mới...');
+  await refreshPicks();
+  generateScript();
+  toast('✅ Đã cập nhật picks!');
+}
+
+function openNewsEdit() {
+  const n = state.news;
+  document.getElementById('n1').value = n[0]?.hl || '';
+  document.getElementById('n1s').value = n[0]?.src || '';
+  document.getElementById('n2').value = n[1]?.hl || '';
+  document.getElementById('n2s').value = n[1]?.src || '';
+  document.getElementById('n3').value = n[2]?.hl || '';
+  document.getElementById('n4').value = n[3]?.hl || '';
+  document.getElementById('newsModal').classList.add('open');
+}
+
+function saveNews() {
+  state.news[0] = { hl: document.getElementById('n1').value, src: document.getElementById('n1s').value, tag: 'bank' };
+  state.news[1] = { hl: document.getElementById('n2').value, src: document.getElementById('n2s').value, tag: 'bds' };
+  state.news[2] = { hl: document.getElementById('n3').value, src: 'Vietstock', tag: 'vimo' };
+  state.news[3] = { hl: document.getElementById('n4').value, src: 'CafeF', tag: 'ck' };
+  renderNews();
+  closeModal('newsModal');
+  toast('✅ Đã lưu tin tức!');
+}
+
+function renderNews() {
+  const tagClass = { bank:'tag-bank', bds:'tag-bds', vimo:'tag-vimo', ck:'tag-ck' };
+  const tagLabel = { bank:'Ngân hàng', bds:'BĐS', vimo:'Vĩ mô', ck:'Chứng khoán' };
+  document.getElementById('newsList').innerHTML = state.news.map(n =>
+    `<div class="news-item">
+      <div class="news-hl"><span class="tag ${tagClass[n.tag]}">${tagLabel[n.tag]}</span>${n.hl}</div>
+      <div class="news-meta">${n.src} · Hôm nay</div>
+    </div>`
+  ).join('');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.overlay').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); })
+);
+
+// ── DOWNLOAD PPTX ──────────────────────────────────────────────────
+async function downloadPPTX() {
+  toast('⚡ Đang tạo PowerPoint...');
+  const bar = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  bar.classList.add('show');
+  fill.style.width = '10%';
+
+  const p = state.picks;
+  const vni = state.vni;
+  const sp  = state.sp;
+
+  const C = {
+    navy:'0B1F3A', navyMid:'112B50', amber:'F5A623',
+    green:'00C48C', red:'FF4D6A', white:'FFFFFF',
+    offWhite:'E8EEF5', grey:'8FA4BD', lightBg:'F0F4FA',
+    darkText:'0B1F3A'
+  };
+
+  const pres = new PptxGenJS();
+  pres.layout = 'LAYOUT_16x9';
+  pres.title = 'Điểm Tin Sáng — ' + today.toLocaleDateString('vi-VN');
+
+  fill.style.width = '25%';
+
+  // ── SLIDE 1: INTRO ──
+  {
+    const s = pres.addSlide();
+    s.background = { color: C.navy };
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:0.4, y:0.3, w:2.4, h:0.55, fill:{color:C.amber}, rectRadius:0.08 });
+    s.addText('ĐIỂM TIN SÁNG', { x:0.4, y:0.3, w:2.4, h:0.55, fontSize:11, bold:true, color:C.navy, align:'center', valign:'middle', margin:0 });
+    s.addText('THỊ TRƯỜNG\nMỞ CỬA', { x:0.5, y:1.1, w:6, h:2.2, fontSize:72, bold:true, color:C.white, align:'left', valign:'top' });
+    s.addShape(pres.shapes.RECTANGLE, { x:0.5, y:3.2, w:3.5, h:0.12, fill:{color:C.amber} });
+    s.addText('Cập nhật tài chính chứng khoán mỗi buổi sáng', { x:0.5, y:3.5, w:6.5, h:0.5, fontSize:15, color:C.grey, italic:true });
+    s.addText('NGÀY: ' + today.toLocaleDateString('vi-VN'), { x:5.5, y:5.0, w:4.2, h:0.4, fontSize:11, color:C.grey, align:'right' });
+
+    const pills = [
+      { label:'VNINDEX', val: vni ? vni.price.toFixed(2) : '—', color: vni?.chgPct >= 0 ? C.green : C.red, y:1.5 },
+      { label:'S&P 500', val: sp ? (sp.chgPct >= 0 ? '+' : '') + sp.chgPct.toFixed(2)+'%' : '—', color: sp?.chgPct >= 0 ? C.green : C.red, y:2.3 },
+      { label:'USD/VND', val: state.usd ? Math.round(state.usd.price).toLocaleString() : '—', color:C.amber, y:3.1 },
+    ];
+    pills.forEach(pl => {
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:7.0, y:pl.y, w:2.7, h:0.62, fill:{color:C.navyMid}, rectRadius:0.1, shadow:{type:'outer',color:'000000',blur:8,offset:2,angle:45,opacity:0.3} });
+      s.addText([
+        { text: pl.label + '  ', options:{ color:C.grey, fontSize:10 } },
+        { text: pl.val, options:{ color:pl.color, fontSize:18, bold:true } }
+      ], { x:7.0, y:pl.y, w:2.7, h:0.62, align:'center', valign:'middle' });
+    });
+  }
+
+  fill.style.width = '45%';
+
+  // ── SLIDE 2: VN MARKET ──
+  {
+    const s = pres.addSlide();
+    s.background = { color: C.lightBg };
+    s.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:10, h:1.0, fill:{color:C.navy} });
+    s.addText('📊  TỔNG QUAN THỊ TRƯỜNG', { x:0.4, y:0, w:9, h:1.0, fontSize:20, bold:true, color:C.white, align:'left', valign:'middle' });
+
+    const idxData = [
+      { name:'VNINDEX', price: vni?.price?.toFixed(2) || '—', chg: vni ? fmtPct(vni.chgPct) : '—', up: vni?.chgPct >= 0 },
+      { name:'VN30',    price: state.vn30?.price?.toFixed(2) || '—', chg: state.vn30 ? fmtPct(state.vn30.chgPct) : '—', up: state.vn30?.chgPct >= 0 },
+      { name:'HNX',     price: state.hnx?.price?.toFixed(2) || '—', chg: state.hnx ? fmtPct(state.hnx.chgPct) : '—', up: state.hnx?.chgPct >= 0 },
+    ];
+    idxData.forEach((idx, i) => {
+      const x = 0.4 + i * 3.1;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y:1.15, w:2.9, h:2.1, fill:{color:C.white}, rectRadius:0.12, shadow:{type:'outer',color:'000000',blur:8,offset:2,angle:45,opacity:0.1} });
+      s.addText(idx.name, { x, y:1.25, w:2.9, h:0.35, fontSize:13, bold:true, color:C.darkText, align:'center' });
+      s.addText(idx.price, { x, y:1.62, w:2.9, h:0.65, fontSize:30, bold:true, color:C.darkText, align:'center' });
+      s.addText((idx.up ? '▲ ' : '▼ ') + idx.chg, { x, y:2.3, w:2.9, h:0.4, fontSize:16, bold:true, color: idx.up ? C.green : C.red, align:'center' });
+    });
+
+    s.addText('TIN NỔI BẬT', { x:0.4, y:3.4, w:9, h:0.35, fontSize:12, bold:true, color:C.darkText, charSpacing:2 });
+    state.news.forEach((n, i) => {
+      s.addText([
+        { text: '• ', options:{ color:C.amber, bold:true } },
+        { text: n.hl, options:{ color:C.darkText } },
+      ], { x:0.4, y: 3.82 + i * 0.42, w:9.2, h:0.38, fontSize:11 });
+    });
+  }
+
+  fill.style.width = '65%';
+
+  // ── SLIDE 3: PICKS ──
+  {
+    const s = pres.addSlide();
+    s.background = { color: C.lightBg };
+    s.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:10, h:1.0, fill:{color:'1A3A5C'} });
+    s.addText('🎯  CỔ PHIẾU TIÊU ĐIỂM HÔM NAY', { x:0.4, y:0, w:9, h:1.0, fontSize:19, bold:true, color:C.white, align:'left', valign:'middle' });
+
+    // Pick 1 large
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:0.4, y:1.1, w:4.4, h:4.25, fill:{color:C.navy}, rectRadius:0.15, shadow:{type:'outer',color:'000000',blur:12,offset:3,angle:45,opacity:0.2} });
+    s.addText('PICK SỐ 1', { x:0.6, y:1.25, w:3.8, h:0.32, fontSize:10, bold:true, color:C.amber, charSpacing:3 });
+    s.addText(p[0].ticker, { x:0.6, y:1.55, w:3.8, h:0.85, fontSize:52, bold:true, color:C.white });
+    s.addText(p[0].company || p[0].ticker, { x:0.6, y:2.38, w:3.8, h:0.32, fontSize:12, color:C.grey });
+
+    const p1chg = p[0].price !== null
+      ? (p[0].chgPct >= 0 ? '▲ ' : '▼ ') + fmtPct(p[0].chgPct) + '   ' + Math.round(p[0].price).toLocaleString('vi-VN') + 'đ'
+      : '— ';
+    s.addText(p1chg, { x:0.6, y:2.75, w:3.8, h:0.4, fontSize:14, bold:true, color: p[0].chgPct >= 0 ? C.green : C.red });
+    s.addText([
+      { text:'Lý do chọn:\n', options:{ bold:true, color:C.amber, breakLine:true } },
+      { text: p[0].reason || 'Xem phân tích chi tiết trong video', options:{ color:C.offWhite } }
+    ], { x:0.6, y:3.22, w:4.0, h:1.9, fontSize:12, lineSpacingMultiple:1.4 });
+
+    // Picks 2 & 3
+    [p[1], p[2]].forEach((pk, i) => {
+      const y = 1.1 + i * 2.25;
+      s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:5.1, y, w:4.5, h:2.05, fill:{color:C.white}, rectRadius:0.12, shadow:{type:'outer',color:'000000',blur:8,offset:2,angle:45,opacity:0.1} });
+      s.addText(pk.ticker, { x:5.3, y:y+0.15, w:2.5, h:0.55, fontSize:28, bold:true, color:C.darkText });
+      s.addText(pk.company || pk.ticker, { x:5.3, y:y+0.65, w:4.0, h:0.28, fontSize:10, color:C.grey });
+      const pkChg = pk.price !== null
+        ? (pk.chgPct >= 0 ? '▲ ' : '▼ ') + fmtPct(pk.chgPct) + '   ' + Math.round(pk.price).toLocaleString('vi-VN') + 'đ'
+        : '—';
+      s.addText(pkChg, { x:5.3, y:y+0.97, w:4.0, h:0.35, fontSize:13, bold:true, color: pk.chgPct >= 0 ? C.green : C.red });
+    });
+  }
+
+  fill.style.width = '85%';
+
+  // ── SLIDE 4: OUTRO ──
+  {
+    const s = pres.addSlide();
+    s.background = { color: C.navy };
+    s.addText('[TÊN KÊNH]', { x:0.5, y:0.9, w:9, h:1.8, fontSize:64, bold:true, color:C.white, align:'center', charSpacing:4 });
+    s.addText('Điểm tin sáng  •  Phân tích chứng khoán  •  Định hướng đầu tư', { x:0.5, y:2.65, w:9, h:0.5, fontSize:13, color:C.grey, align:'center', italic:true });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:0.5, y:3.4, w:9, h:0.6, fill:{color:C.amber}, rectRadius:0.1 });
+    s.addText('Đầu tư thông minh bắt đầu từ thông tin đúng giờ.', { x:0.5, y:3.4, w:9, h:0.6, fontSize:15, bold:true, color:C.navy, align:'center', valign:'middle' });
+    s.addText('⚠ Nội dung mang tính tham khảo, không phải khuyến nghị đầu tư tài chính.', { x:0.5, y:5.1, w:9, h:0.3, fontSize:10, color:C.grey, align:'center' });
+  }
+
+  fill.style.width = '95%';
+
+  const fname = 'DienTinSang_' + today.toISOString().slice(0,10) + '.pptx';
+  await pres.writeFile({ fileName: fname });
+
+  fill.style.width = '100%';
+  setTimeout(() => { bar.classList.remove('show'); fill.style.width = '0%'; }, 800);
+  toast('✅ Đã tải ' + fname);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+refreshAll();
+</script>
+</body>
+</html>
