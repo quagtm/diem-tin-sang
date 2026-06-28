@@ -1,0 +1,30 @@
+{
+  "updated": "Chờ GitHub Actions chạy lần đầu...",
+  "updated_iso": "",
+  "world": {
+    "sp500":    {"price": 5450.0,  "chgPct": 0.85},
+    "nasdaq":   {"price": 17820.0, "chgPct": 1.12},
+    "nikkei":   {"price": 38900.0, "chgPct": -0.23},
+    "shanghai": {"price": 3320.0,  "chgPct": 0.41},
+    "oil":      {"price": 72.4,    "chgPct": -0.65},
+    "gold":     {"price": 2340.0,  "chgPct": 0.32},
+    "usdvnd":   {"price": 25450.0, "chgPct": 0.05}
+  },
+  "vn": {
+    "vnindex": {"price": 1282.5, "chgPct": 0.54, "volume": 580000000},
+    "vn30":    {"price": 1321.3, "chgPct": 0.61, "volume": 320000000},
+    "hnx":     {"price": 241.8,  "chgPct": -0.12, "volume": 85000000}
+  },
+  "stocks": {
+    "VCB": {"price": 86000,  "chgPct": 1.8,  "volume": 2100000},
+    "HPG": {"price": 27400,  "chgPct": 1.2,  "volume": 8500000},
+    "FPT": {"price": 149500, "chgPct": 0.6,  "volume": 1200000},
+    "SSI": {"price": 28200,  "chgPct": -0.3, "volume": 3400000},
+    "VNM": {"price": 68500,  "chgPct": 0.4,  "volume": 980000},
+    "MWG": {"price": 48200,  "chgPct": 1.1,  "volume": 1500000},
+    "TCB": {"price": 22400,  "chgPct": 0.9,  "volume": 4200000},
+    "VHM": {"price": 35600,  "chgPct": -0.8, "volume": 2800000},
+    "GAS": {"price": 73000,  "chgPct": 0.2,  "volume": 420000},
+    "PVD": {"price": 18200,  "chgPct": -0.5, "volume": 1100000}
+  }
+}
